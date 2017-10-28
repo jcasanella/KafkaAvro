@@ -37,8 +37,8 @@ public class KafkaAvroClient {
 
         properties = new Properties();
         properties.put("bootstrap.servers", "localhost:9092");
-        properties.put("key.deserializer", "org.apache.kafka.common.serialization.StringSerializer");
-        properties.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
+        properties.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        properties.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
         properties.put("group.id", "bestbuyGroup");
 
         consumer = new KafkaConsumer<String, byte[]>(properties);
