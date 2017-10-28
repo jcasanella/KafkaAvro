@@ -11,8 +11,10 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 
 import java.util.Properties;
+import java.util.concurrent.Future;
 
 public class KafkaAvroProducer {
 
@@ -76,15 +78,21 @@ public class KafkaAvroProducer {
         return recordInjection.apply(avroRecord);
     }
 
-    public void send(Product prod) {
+    public Future<RecordMetadata> send(Product prod) {
 
         byte[] msg = createMessage(prod);
         ProducerRecord<String, byte[]> record = new ProducerRecord<String, byte[]>(topic, msg);
-        producer.send(record);
+        return producer.send(record);
+    }
+
+    KafkaProducer<String, byte[]> getProducer() {
+
+        return this.producer;
     }
 
     public void close() {
 
+        producer.flush();
         producer.close();
     }
 }

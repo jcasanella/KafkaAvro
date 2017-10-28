@@ -6,8 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learn.big.data.kafka.producer.KafkaAvroProducer;
 import com.learn.big.data.net.RestClient;
 import com.learn.big.data.model.Product;
+import org.apache.kafka.clients.producer.RecordMetadata;
 
 import java.io.IOException;
+import java.util.concurrent.Future;
 
 public class Producer {
 
@@ -49,11 +51,14 @@ public class Producer {
                                 manufacturer, modelNumber, image);
 
                         // Set up message
-                        producer.send(prod);
+                        Future<RecordMetadata> metadata = producer.send(prod);
+                        System.out.printf("Metadata offset: %d, topic: %s, partition: %d \n",
+                                metadata.get().offset(), metadata.get().topic(), metadata.get().partition());
 
+                        // Message to send
                         System.out.println(prod.toString());
 
-                        Thread.sleep(250);
+                        Thread.sleep(2000);
                     }
                 }
 
@@ -65,9 +70,11 @@ public class Producer {
                 e.printStackTrace();
             } catch (Exception e) {
                 e.printStackTrace();
-            } finally {
-                producer.close();
             }
         }
+
+        // Flush and close the producer
+        producer.close();
+
     }
 }
