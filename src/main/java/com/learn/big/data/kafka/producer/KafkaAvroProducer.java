@@ -1,7 +1,7 @@
 package com.learn.big.data.kafka.producer;
 
 import com.learn.big.data.model.Product;
-import com.learn.big.data.utils.SomeUtils;
+import com.learn.big.data.utils.ReadResources;
 
 import com.twitter.bijection.Injection;
 import com.twitter.bijection.avro.GenericAvroCodecs;
@@ -10,15 +10,17 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.Properties;
 import java.util.concurrent.Future;
 
 public class KafkaAvroProducer {
 
-    private SomeUtils su;
     private Properties properties = null;
     private Injection<GenericRecord, byte[]> recordInjection = null;
     private Schema schema = null;
@@ -27,7 +29,6 @@ public class KafkaAvroProducer {
 
     public KafkaAvroProducer(String topic) {
 
-        su = new SomeUtils();
         this.topic = topic;
 
         init(); // Init properties
@@ -37,9 +38,10 @@ public class KafkaAvroProducer {
     private void init() {
 
         properties = new Properties();
-        properties.put("bootstrap.servers", "localhost:9092");
-        properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        properties.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        properties.put(ProducerConfig.CLIENT_ID_CONFIG, "bestbuy");
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
 
         producer = new KafkaProducer<String, byte[]>(properties);
     }
@@ -50,7 +52,7 @@ public class KafkaAvroProducer {
             Schema.Parser parser = new Schema.Parser();
 
             // Get schema from properties
-            String avro_schema = su.getSchema();
+            String avro_schema = ReadResources.getSchema();
 
             schema = parser.parse(avro_schema);
             recordInjection = GenericAvroCodecs.toBinary(schema);
@@ -83,11 +85,6 @@ public class KafkaAvroProducer {
         byte[] msg = createMessage(prod);
         ProducerRecord<String, byte[]> record = new ProducerRecord<String, byte[]>(topic, msg);
         return producer.send(record);
-    }
-
-    KafkaProducer<String, byte[]> getProducer() {
-
-        return this.producer;
     }
 
     public void close() {

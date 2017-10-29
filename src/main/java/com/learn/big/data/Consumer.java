@@ -10,16 +10,19 @@ public class Consumer {
     public static void main(String[] args) {
 
         // Set up Kafka consumer
-        KafkaAvroClient client = new KafkaAvroClient("\"best_buy\"");
+        KafkaAvroClient client = new KafkaAvroClient("best_buy");
 
         while(true) {
 
             ConsumerRecords<String, byte[]> records = client.poll(100);
+            System.out.println("Records: " + records.count());
+
             for(ConsumerRecord<String, byte[]> record : records) {
 
-                Product prod = client.getProduct(record);
+               Product prod = client.getProduct(record);
 
                 System.out.printf("offset: %d key: %s \n", record.offset(), record.key());
+                System.out.println(record.value());
                 System.out.println(prod.toString());
             }
         }

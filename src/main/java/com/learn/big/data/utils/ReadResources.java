@@ -4,12 +4,12 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 
-public class SomeUtils {
+public class ReadResources {
 
-    public String getSchema() {
+    public static String getSchema() {
 
         String schema = "";
-        ClassLoader classLoader = getClass().getClassLoader();
+        ClassLoader classLoader = ReadResources.class.getClassLoader();
         try {
             schema = IOUtils.toString(classLoader.getResourceAsStream("schema.avsc"));
         } catch (IOException e) {

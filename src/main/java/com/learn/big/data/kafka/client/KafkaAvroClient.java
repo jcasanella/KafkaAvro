@@ -1,21 +1,23 @@
 package com.learn.big.data.kafka.client;
 
 import com.learn.big.data.model.Product;
-import com.learn.big.data.utils.SomeUtils;
+import com.learn.big.data.utils.ReadResources;
 import com.twitter.bijection.Injection;
 import com.twitter.bijection.avro.GenericAvroCodecs;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 
 import java.util.Arrays;
 import java.util.Properties;
 
 public class KafkaAvroClient {
 
-    private SomeUtils su;
     private Properties properties = null;
     private KafkaConsumer<String, byte[]> consumer = null;
     private Schema schema = null;
@@ -25,23 +27,25 @@ public class KafkaAvroClient {
     public KafkaAvroClient(String topic) {
 
         this.topic = topic;
-        su = new SomeUtils();
 
         init(); // Initialize the properties
         getShema(); // Parse the schema
-
-        consumer.subscribe(Arrays.asList(topic));   // Subscribe topic
     }
 
     private void init() {
 
         properties = new Properties();
-        properties.put("bootstrap.servers", "localhost:9092");
-        properties.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        properties.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-        properties.put("group.id", "bestbuyGroup");
+        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, "bestbuy");
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
+
+        // Read from the beginning
+        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         consumer = new KafkaConsumer<String, byte[]>(properties);
+        consumer.subscribe(Arrays.asList(topic));   // Subscribe topic
     }
 
     public Schema getShema() {
@@ -50,7 +54,7 @@ public class KafkaAvroClient {
             Schema.Parser parser = new Schema.Parser();
 
             // Get schema from properties
-            String avro_schema = su.getSchema();
+            String avro_schema = ReadResources.getSchema();
 
             schema = parser.parse(avro_schema);
             recordInjection = GenericAvroCodecs.toBinary(schema);
@@ -76,7 +80,7 @@ public class KafkaAvroClient {
         String name  = generic.get("name").toString();
         String source = generic.get("source").toString();
         String type =  generic.get("type").toString();
-        long productId =  Long.parseLong(generic.get("type").toString());
+        long productId =  Long.parseLong(generic.get("productId").toString());
         String manufacturer = generic.get("manufacturer").toString();
         String modelNumber = generic.get("modelNumber").toString();
         String image = generic.get("image").toString();

@@ -34,7 +34,7 @@ public class Producer {
                 root = mapper.readTree(RestClient.getMessage(currentPage));
 
                 if (root.get("products").isArray()) {
-                    System.out.println("It's array");
+
                     for (final JsonNode element : root.get("products")) {
 
                         long sku = element.get("sku").longValue();
